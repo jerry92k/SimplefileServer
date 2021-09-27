@@ -27,7 +27,7 @@ public class BlockingIoFileServer {
         }
     }
 
-    private void closeServer() {
+    public void closeServer() {
         try {
             serverSocket.close();
         } catch (IOException e) {
@@ -35,7 +35,7 @@ public class BlockingIoFileServer {
         }
     }
 
-    public Socket listenConnectRequet(ServerSocket serverSocket) throws IOException {
+    private Socket listenConnectRequet(ServerSocket serverSocket) throws IOException {
         System.out.println("server listen on port 7777");
         Socket socket = serverSocket.accept();
         System.out.println("[ " + socket.getInetAddress() + " ] client connected");
