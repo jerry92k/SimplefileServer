@@ -2,21 +2,29 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 
-public class SimpleFileServer {
+public class BlockingIoFileServer {
 
     private final int port=7777;
     private final Charset charset = Charset.forName("UTF-8");
     private ServerSocket serverSocket;
 
     public static void main(String[] args){
-       SimpleFileServer simpleFileServer=new SimpleFileServer();
-       simpleFileServer.initServer();
-       simpleFileServer.startServer();
+
+        BlockingIoFileServer blockingIoFileServer =new BlockingIoFileServer();
+        try {
+            blockingIoFileServer.initServer();
+            blockingIoFileServer.startServer();
+        }
+        catch (Exception ex){
+            System.out.println(ex);
+        }
+        finally {
+            blockingIoFileServer.closeServer();
+        }
     }
 
     private void closeServer() {
@@ -33,40 +41,22 @@ public class SimpleFileServer {
         System.out.println("[ " + socket.getInetAddress() + " ] client connected");
         return socket;
     }
-    public void initServer(){
-        try {
-            serverSocket = new ServerSocket(port);
-        } catch (IOException e) {
-            e.printStackTrace();
-            try {
-                serverSocket.close();
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-        }
+    public void initServer() throws IOException {
+        serverSocket = new ServerSocket(port);
     }
 
-    public void startServer() {
-        try {
-            while(true) {
-                try(Socket socket = listenConnectRequet(serverSocket)){
-                    String requestMsg =readRequestMessage(socket);
-                    handleFileRequest(requestMsg, socket);
-                }
-                catch (ArrayIndexOutOfBoundsException ex){
-                    System.out.println("request 포맷 오류");
-                }catch (FileNotFoundException ex) {
-                    ex.printStackTrace();
-                }
+    public void startServer() throws IOException, NoSuchAlgorithmException {
+
+        while(true) {
+            try(Socket socket = listenConnectRequet(serverSocket)){
+                String requestMsg =readRequestMessage(socket);
+                handleFileRequest(requestMsg, socket);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e){
-            e.printStackTrace();
+            catch (ArrayIndexOutOfBoundsException ex){
+                System.out.println("request 포맷 오류");
+            }
         }
-        finally {
-            closeServer();
-        }
+
     }
 
     private void handleFileRequest(String requestFilePath,Socket socket) throws IOException, NoSuchAlgorithmException {

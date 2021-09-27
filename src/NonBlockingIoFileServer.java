@@ -1,22 +1,18 @@
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class NioFileServer {
-
+public class NonBlockingIoFileServer {
 
     private Selector selector = null;
     private List<SelectionKey> room = new ArrayList<>();
@@ -29,29 +25,37 @@ public class NioFileServer {
     private final char LF = (char) 0x0A;
 
     public static void main(String[] args){
-        NioFileServer nioFileServer=new NioFileServer();
-        nioFileServer.initServer();
-        nioFileServer.startServer();
+
+        NonBlockingIoFileServer nonBlockingIoFileServer =new NonBlockingIoFileServer();
+        try {
+            nonBlockingIoFileServer.initServer();
+            nonBlockingIoFileServer.startServer();
+        }
+        catch (Exception ex){
+            System.out.println(ex);
+        }
+        finally {
+            nonBlockingIoFileServer.closeServer();
+        }
     }
 
-    public void initServer() {
-        try {
-            selector = Selector.open();
-            serverSocketChannel = ServerSocketChannel.open();
-            serverSocketChannel.configureBlocking(false);
-            serverSocketChannel.bind(new InetSocketAddress(port));
+    public void initServer() throws IOException {
 
-            // 채널에 Selector를 등록한다.
-            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-            System.out.println("server initialized");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        selector = Selector.open();
+        serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.configureBlocking(false);
+        serverSocketChannel.bind(new InetSocketAddress(port));
+
+        // 채널에 Selector를 등록한다.
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+        System.out.println("server initialized");
+
     }
 
     public void closeServer(){
         try {
             System.out.println("server closed");
+            selector.close();
             serverSocketChannel.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -59,32 +63,24 @@ public class NioFileServer {
     }
 
 
-    public void startServer() {
-        try {
-            while (true) {
-                // 발생한 이벤트가 있는지 확인한다.
-                System.out.println("server is waiting");
+    public void startServer() throws IOException, NoSuchAlgorithmException {
 
-                    selector.select();
-                    Set<SelectionKey> selectionKeySet = selector.selectedKeys();
+        while (true) {
+            // 발생한 이벤트가 있는지 확인한다.
+            System.out.println("server is waiting");
 
-                    for (SelectionKey key : selectionKeySet) {
-                        if (key.isAcceptable()) {
-                            accept(key);
-                        }
-                        else if (key.isReadable()) {
-                            read(key);
-                        }
+                selector.select();
+                Set<SelectionKey> selectionKeySet = selector.selectedKeys();
+
+                for (SelectionKey key : selectionKeySet) {
+                    if (key.isAcceptable()) {
+                        accept(key);
                     }
+                    else if (key.isReadable()) {
+                        read(key);
+                    }
+                }
 
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        finally {
-            closeServer();
         }
     }
 
@@ -167,8 +163,6 @@ public class NioFileServer {
     }
 
     private byte[] readFiles(String pathName) throws IOException {
-        System.out.println(pathName);
-        System.out.println(pathName.length());
         try (InputStream fileInputStream = new FileInputStream(pathName)) {
             return fileInputStream.readAllBytes();
         }
