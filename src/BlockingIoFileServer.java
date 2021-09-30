@@ -8,7 +8,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class BlockingIoFileServer {
 
-    private final int port=7777;
+    private final int port=7776;
     private final Charset charset = Charset.forName("UTF-8");
     private ServerSocket serverSocket;
 
@@ -36,7 +36,7 @@ public class BlockingIoFileServer {
     }
 
     private Socket listenConnectRequet(ServerSocket serverSocket) throws IOException {
-        System.out.println("server listen on port 7777");
+        System.out.println("server listen on port :"+port);
         Socket socket = serverSocket.accept();
         System.out.println("[ " + socket.getInetAddress() + " ] client connected");
         return socket;

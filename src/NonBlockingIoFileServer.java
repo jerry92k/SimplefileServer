@@ -48,7 +48,7 @@ public class NonBlockingIoFileServer {
 
         // 채널에 Selector를 등록한다.
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-        System.out.println("server initialized");
+        System.out.println("server initialized on port :"+port);
 
     }
 
