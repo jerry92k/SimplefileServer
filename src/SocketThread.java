@@ -79,7 +79,7 @@ public class SocketThread extends Thread{
         return requestMsg;
     }
 
-    public String bytesToStr(byte[] bytes){
+    private String bytesToStr(byte[] bytes){
         StringBuilder sb= new StringBuilder();
 
         for(byte b : bytes){

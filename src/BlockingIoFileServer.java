@@ -1,6 +1,8 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class BlockingIoFileServer {
@@ -8,6 +10,9 @@ public class BlockingIoFileServer {
     private final int port=7777;
 
     private ServerSocket serverSocket;
+
+    private static final int THREAD_CNT = 100;
+    private static ExecutorService threadPool = Executors.newFixedThreadPool(THREAD_CNT);
 
     public static void main(String[] args){
 
@@ -48,9 +53,7 @@ public class BlockingIoFileServer {
 
             try{
                 Socket socket = listenConnectRequet(serverSocket);
-                SocketThread socketThread=new SocketThread(socket);
-                socketThread.start();
-
+                threadPool.execute(new SocketThread(socket));
             }
             catch (ArrayIndexOutOfBoundsException ex){
                 System.out.println("request 포맷 오류");
