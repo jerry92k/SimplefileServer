@@ -49,18 +49,23 @@ public class BlockingIoFileServer {
 
     public void startServer() throws IOException {
 
+        // TODO : Thread에 인자로 넘겨주는 socket 객체를 Thread가 종료될 때 close() 호출 해야함.
         while(true) {
 
+            Socket socket = null;
             try{
-                Socket socket = listenConnectRequet(serverSocket);
+                socket = listenConnectRequet(serverSocket);
                 threadPool.execute(new SocketThread(socket));
             }
             catch (ArrayIndexOutOfBoundsException ex){
                 System.out.println("request 포맷 오류");
+            }finally {
+                // if(socket!=null){
+                //     socket.close();
+                // }
             }
         }
 
     }
-
 
 }
